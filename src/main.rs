@@ -1,10 +1,9 @@
-use bevy_console::{ConsoleConfiguration, ConsolePlugin};
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
     window::PresentMode,
     input::mouse:: MouseButtonInput,
-
+    input::keyboard::KeyboardInput
 };
 
 fn main()
@@ -24,18 +23,15 @@ fn main()
             }),
             ..default()
         }))
-        .add_plugin(ConsolePlugin)
-        .insert_resource(ConsoleConfiguration{
-            ..Default::default()
-        })
         .add_startup_system(setup)
         .add_system(session_time)
+        .add_system(text_input)
         .add_system(add_vertex_to_graph)
         .run();
 }
 
 #[derive(Component)]
-struct ConsoleText;
+struct ConsoleTextInput;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>)
 {
@@ -63,7 +59,31 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>)
                 },
                 ..default()
             }),
-        ConsoleText,
+    ));
+
+    commands.spawn((
+        // Create a TextBundle that has a Text with a single section.
+        TextBundle::from_section(
+            // Accepts a `String` or any type that converts into a `String`, such as `&str`
+            "",
+            TextStyle {
+                font: asset_server.load("fonts/FiraSans-ExtraLight.ttf"),
+                font_size: 30.0,
+                color: Color::WHITE,
+            },
+        ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(40.0),
+                    ..default()
+                },
+                ..default()
+            }),
+        ConsoleTextInput,
     ));
 }
 
@@ -75,6 +95,47 @@ fn session_time(mut windows: Query<&mut Window>, time: Res<Time>)
     window.title = format!("Computation Engine v1.0 - Session time {:?}", time.elapsed().as_secs_f32().round());
 }
 
+
+// This system takes keyboard input and updates the console text on screen acordingly
+fn text_input(
+    mut commands: Commands,
+    mut asset_server: Res<AssetServer>,
+    mut char_evr: EventReader<ReceivedCharacter>,
+    keys: Res<Input<KeyCode>>,
+    mut string: Local<String>,
+    mut query: Query<&mut Text, With<ConsoleTextInput>>)
+{
+    for ev in char_evr.iter()
+    {
+        println!("Got char: '{}'", ev.char);
+
+        if ev.char == '\x08'
+        {
+            string.pop();
+        }
+
+        else
+        {
+            string.push(ev.char);
+        }
+
+        for mut text in &mut query
+        {
+            text.sections[0].value = format!("{}", *string)
+        }
+    }
+
+    if keys.just_pressed(KeyCode::Return)
+    {
+        println!("Text input: {}", *string);
+        string.clear();
+
+        for mut text in &mut query
+        {
+            text.sections[0].value = format!("{}", *string)
+        }
+    }
+}
 
 fn add_vertex_to_graph(
     mut commands: Commands,
