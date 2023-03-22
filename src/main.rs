@@ -1,19 +1,25 @@
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
-    window::PresentMode,
+    window::{PresentMode, Cursor},
     input::mouse:: MouseButtonInput,
-    input::keyboard::KeyboardInput
+    input::keyboard::KeyboardInput,
 };
+use std::thread;
+use std::time::Duration;
+
+const WIN_HEIGHT: f32 = 1536.;
+const WIN_WIDTH: f32 = 864.;
 
 fn main()
 {
+
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.17254902, 0.176470588, 0.176470588)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Computation Engine v1.0".into(),
-                resolution: (1536., 864.).into(),
+                resolution: (WIN_HEIGHT, WIN_WIDTH).into(),
                 present_mode: PresentMode::AutoVsync,
                 // Tells wasm to resize the window according to the available canvas
                 fit_canvas_to_parent: true,
@@ -26,6 +32,7 @@ fn main()
         .add_startup_system(setup)
         .add_system(session_time)
         .add_system(console_input)
+        // -----------------------------
         .add_system(add_vertex_to_graph)
         .run();
 }
@@ -176,15 +183,6 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>)
     ));
 }
 
-
-// This system prints time elapsed since execution in seconds as app title
-fn session_time(mut windows: Query<&mut Window>, time: Res<Time>)
-{
-    let mut window = windows.single_mut();
-    window.title = format!("Computation Engine v1.0 - Session time {:?}", time.elapsed().as_secs_f32().round());
-}
-
-
 // This system takes keyboard input and updates the console text on screen accordingly
 fn console_input(
     mut commands: Commands,
@@ -257,32 +255,52 @@ fn console_input(
     }
 }
 
+// This system prints time elapsed since execution in seconds as app title
+fn session_time(mut windows: Query<&mut Window>, time: Res<Time>)
+{
+    let mut window = windows.single_mut();
+    window.title = format!("Computation Engine v1.0 - Session time {:?}", time.elapsed().as_secs_f32().round());
+}
+
+// This function returns the cursor position inside the window
+fn get_cursor_position(win: &Window) -> Vec2
+{
+    return win.physical_cursor_position().unwrap();
+}
+
+// ------------------------------------
+
 fn add_vertex_to_graph(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut mouse_button_input: Res<Input<MouseButton>>,
-    mut cursor_moved_events: EventReader<CursorMoved>)
+    window: Query<&mut Window>,
+)
 {
-    /*for event in cursor_moved_events.iter()
-    {
-        info!("{:?}", event);
-    }*/
+    let win = window.single();
 
     if mouse_button_input.pressed(MouseButton::Left)
     {
-        draw_circle(commands, meshes, materials);
+        draw_circle(commands, meshes, materials, win.height(), win.width() ,get_cursor_position(win));
+        thread::sleep(Duration::from_millis(50));
     }
 }
 
 // This function draws a circle on the app canvas
-fn draw_circle(mut commands: Commands, mut meshes: ResMut<Assets<Mesh>>, mut materials: ResMut<Assets<ColorMaterial>>)
+fn draw_circle(mut commands: Commands,
+               mut meshes: ResMut<Assets<Mesh>>,
+               mut materials: ResMut<Assets<ColorMaterial>>,
+               win_height: f32,
+               win_width: f32,
+               position: Vec2,
+)
 {
     commands.spawn(MaterialMesh2dBundle
     {
         mesh: meshes.add(shape::Circle::new(10.).into()).into(),
         material: materials.add(ColorMaterial::from(Color::WHITE)),
-        transform: Transform::from_translation(Vec3::new(0., 0., 0.)),
+        transform: Transform::from_translation(Vec3::new(position.x - (win_width / 2.), position.y - (win_height / 2.), 0.)),
         ..default()
     });
 }
