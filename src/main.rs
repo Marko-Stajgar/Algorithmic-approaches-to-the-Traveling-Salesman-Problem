@@ -226,11 +226,19 @@ fn console_input(
         *console_past_command2 = console_past_command1.to_string();
         *console_past_command1 = string.to_string();
 
+        /*
         println!("Text input: {}", *string);
         println!("Console past command1: {}", *console_past_command1);
         println!("Console past command2: {}", *console_past_command2);
         println!("Console past command3: {}", *console_past_command3);
+        */
+
         string.clear();
+
+        for mut console_input_text in &mut console_input_param_set.p0().iter_mut()
+        {
+            console_input_text.sections[0].value = format!("{}", *string);
+        }
 
         for mut console_past_command1_text in &mut console_input_param_set.p1().iter_mut()
         {
@@ -245,11 +253,6 @@ fn console_input(
         for mut console_past_command3_text in &mut console_input_param_set.p3().iter_mut()
         {
             console_past_command3_text.sections[0].value = format!("{}", *console_past_command3)
-        }
-
-        for mut console_input_text in &mut console_input_param_set.p0().iter_mut()
-        {
-            console_input_text.sections[0].value = format!("{}", *string);
         }
     }
 }
