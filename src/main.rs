@@ -272,6 +272,7 @@ fn get_cursor_position(win: &Window) -> Vec2
 
 fn add_vertex_to_graph(
     mut commands: Commands,
+
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut mouse_button_input: Res<Input<MouseButton>>,
@@ -280,15 +281,14 @@ fn add_vertex_to_graph(
 {
     let win = window.single();
 
-    if mouse_button_input.pressed(MouseButton::Left)
+    if mouse_button_input.just_pressed(MouseButton::Left)
     {
-        draw_circle(commands, meshes, materials, win.height(), win.width() ,get_cursor_position(win));
-        thread::sleep(Duration::from_millis(50));
+        draw_vertex(commands, meshes, materials, win.height(), win.width() ,get_cursor_position(win));
     }
 }
 
 // This function draws a circle on the app canvas
-fn draw_circle(mut commands: Commands,
+fn draw_vertex(mut commands: Commands,
                mut meshes: ResMut<Assets<Mesh>>,
                mut materials: ResMut<Assets<ColorMaterial>>,
                win_height: f32,
@@ -298,7 +298,7 @@ fn draw_circle(mut commands: Commands,
 {
     commands.spawn(MaterialMesh2dBundle
     {
-        mesh: meshes.add(shape::Circle::new(10.).into()).into(),
+        mesh: meshes.add(shape::Circle::new(15.).into()).into(),
         material: materials.add(ColorMaterial::from(Color::WHITE)),
         transform: Transform::from_translation(Vec3::new(position.x - (win_width / 2.), position.y - (win_height / 2.), 0.)),
         ..default()
