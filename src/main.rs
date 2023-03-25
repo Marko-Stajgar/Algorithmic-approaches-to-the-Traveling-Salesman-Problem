@@ -8,14 +8,31 @@ use bevy::{
 use std::thread;
 use std::time::Duration;
 
-const WIN_HEIGHT: f32 = 1536.;
-const WIN_WIDTH: f32 = 864.;
+const WIN_HEIGHT: f32 = 1920.;
+const WIN_WIDTH: f32 = 1080.;
+
+// Declaration and initialization of the vertex list that stores vertex as tuple in the form of (vertex_number, vertex_position_height, vertex_position_width)
+#[derive(Resource)]
+struct VertexList
+{
+    vector: Vec<(u32, f32, f32)>,
+    count: u32,
+}
+
+// Declaration and initialization of the edge list that stores edge as tuple in the form of (vertex1, vertex2, distance_between_vertices)
+#[derive(Resource)]
+struct EdgeList
+{
+    vector: Vec<(u16, u16, f32)>,
+    count: u32,
+}
 
 fn main()
 {
-
     App::new()
         .insert_resource(ClearColor(Color::rgb(0.17254902, 0.176470588, 0.176470588)))
+        .insert_resource(VertexList {vector: Vec::new(), count: 0})
+        .insert_resource(EdgeList {vector: Vec::new(), count: 0})
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Computation Engine v1.0".into(),
@@ -33,7 +50,7 @@ fn main()
         .add_system(session_time)
         .add_system(console_input)
         // -----------------------------
-        .add_system(add_vertex_to_graph)
+        .add_system(graph_handler)
         .run();
 }
 
@@ -48,6 +65,15 @@ struct ConsolePastCommand2;
 
 #[derive(Component)]
 struct ConsolePastCommand3;
+
+#[derive(Component)]
+struct VertexCountText;
+
+#[derive(Component)]
+struct EdgeCountText;
+
+#[derive(Component)]
+struct PossibleCyclesText;
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>)
 {
@@ -181,6 +207,84 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>)
             }),
         ConsolePastCommand3,
     ));
+
+    // Spawns a text bundle representing number of vertices in the graph
+    commands.spawn((
+        // Create a TextBundle that has a Text with a single section.
+        TextBundle::from_section(
+            // Accepts a `String` or any type that converts into a `String`, such as `&str`
+            "Number of vertices: ",
+            TextStyle {
+                font: asset_server.load("fonts/FiraSans-ExtraLight.ttf"),
+                font_size: 30.0,
+                color: Color::WHITE,
+            },
+        ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    top: Val::Px(15.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
+                ..default()
+            }),
+        VertexCountText,
+    ));
+
+    // Spawns a text bundle representing number of edges in the graph
+    commands.spawn((
+        // Create a TextBundle that has a Text with a single section.
+        TextBundle::from_section(
+            // Accepts a `String` or any type that converts into a `String`, such as `&str`
+            "Number of edges: ",
+            TextStyle {
+                font: asset_server.load("fonts/FiraSans-ExtraLight.ttf"),
+                font_size: 30.0,
+                color: Color::WHITE,
+            },
+        ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    top: Val::Px(50.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
+                ..default()
+            }),
+        EdgeCountText,
+    ));
+
+    // Spawns a text bundle representing number of possible hamiltionian cycles inside the graph
+    commands.spawn((
+        // Create a TextBundle that has a Text with a single section.
+        TextBundle::from_section(
+            // Accepts a `String` or any type that converts into a `String`, such as `&str`
+            "Number of possible cycles: ",
+            TextStyle {
+                font: asset_server.load("fonts/FiraSans-ExtraLight.ttf"),
+                font_size: 30.0,
+                color: Color::WHITE,
+            },
+        ) // Set the alignment of the Text
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    top: Val::Px(85.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
+                ..default()
+            }),
+        PossibleCyclesText,
+    ));
 }
 
 // This system takes keyboard input and updates the console text on screen accordingly
@@ -270,20 +374,42 @@ fn get_cursor_position(win: &Window) -> Vec2
 
 // ------------------------------------
 
-fn add_vertex_to_graph(
+fn graph_handler(
     mut commands: Commands,
-
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut mouse_button_input: Res<Input<MouseButton>>,
     window: Query<&mut Window>,
-)
+    mut vertex_list: ResMut<VertexList>,
+    mut edge_list: ResMut<EdgeList>,
+    mut info_text_param_set: ParamSet<(
+        Query <&mut Text, With<VertexCountText>>,
+        Query <&mut Text, With<EdgeCountText>>,
+        Query <&mut Text, With<PossibleCyclesText>>,
+    )>)
 {
     let win = window.single();
+    let count: u32;
 
     if mouse_button_input.just_pressed(MouseButton::Left)
     {
         draw_vertex(commands, meshes, materials, win.height(), win.width() ,get_cursor_position(win));
+        vertex_list.count += 1;
+        count = vertex_list.count;
+        vertex_list.vector.push((count, get_cursor_position(win).y, get_cursor_position(win).x));
+        println!("new vertex number: {:?}", vertex_list.vector[(count - 1) as usize].0);
+
+        for mut vertex_count_text in &mut info_text_param_set.p0().iter_mut()
+        {
+            vertex_count_text.sections[0].value = format!("Number of vertices: {}", vertex_list.count.to_string());
+        }
+
+        edge_list.count += count - 1;
+
+        for mut edge_count_text in &mut info_text_param_set.p1().iter_mut()
+        {
+            edge_count_text.sections[0].value = format!("Number of edges: {}", edge_list.count.to_string())
+        }
     }
 }
 
