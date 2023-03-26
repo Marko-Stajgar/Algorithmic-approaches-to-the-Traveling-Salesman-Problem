@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
@@ -5,6 +6,8 @@ use bevy::{
     input::mouse:: MouseButtonInput,
     input::keyboard::KeyboardInput,
 };
+use bevy_despawn_with::DespawnAllCommandsExt;
+use bevy_prototype_debug_lines::*;
 use std::thread;
 use std::time::Duration;
 
@@ -23,7 +26,7 @@ struct VertexList
 #[derive(Resource)]
 struct EdgeList
 {
-    vector: Vec<(u16, u16, f32)>,
+    vector: Vec<(u32, u32, f32)>,
     count: u32,
 }
 
@@ -33,6 +36,7 @@ fn main()
         .insert_resource(ClearColor(Color::rgb(0.17254902, 0.176470588, 0.176470588)))
         .insert_resource(VertexList {vector: Vec::new(), count: 0})
         .insert_resource(EdgeList {vector: Vec::new(), count: 0})
+        .insert_resource(Msaa::default())
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Computation Engine v1.0".into(),
@@ -46,6 +50,7 @@ fn main()
             }),
             ..default()
         }))
+        .add_plugin(DebugLinesPlugin::default())
         .add_startup_system(setup)
         .add_system(session_time)
         .add_system(console_input)
@@ -376,6 +381,8 @@ fn get_cursor_position(win: &Window) -> Vec2
 
 fn graph_handler(
     mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut lines: ResMut<DebugLines>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut mouse_button_input: Res<Input<MouseButton>>,
@@ -393,10 +400,9 @@ fn graph_handler(
 
     if mouse_button_input.just_pressed(MouseButton::Left)
     {
-        draw_vertex(commands, meshes, materials, win.height(), win.width() ,get_cursor_position(win));
         vertex_list.count += 1;
         count = vertex_list.count;
-        vertex_list.vector.push((count, get_cursor_position(win).y, get_cursor_position(win).x));
+        vertex_list.vector.push((count, get_cursor_position(win).y - (win.height() / 2.), get_cursor_position(win).x - (win.width() / 2.)));
         println!("new vertex number: {:?}", vertex_list.vector[(count - 1) as usize].0);
 
         for mut vertex_count_text in &mut info_text_param_set.p0().iter_mut()
@@ -406,27 +412,75 @@ fn graph_handler(
 
         edge_list.count += count - 1;
 
+        if count > 1
+        {
+            for i in 1..count
+            {
+                edge_list.vector.push((count, i, 0.));
+                println!("new edge: {:?}", edge_list.vector[(edge_list.vector.len() - 1) as usize]);
+            }
+        }
+
         for mut edge_count_text in &mut info_text_param_set.p1().iter_mut()
         {
             edge_count_text.sections[0].value = format!("Number of edges: {}", edge_list.count.to_string())
         }
+
+        draw_graph(commands, meshes, materials, lines, window, vertex_list, edge_list);
     }
 }
 
-// This function draws a circle on the app canvas
-fn draw_vertex(mut commands: Commands,
-               mut meshes: ResMut<Assets<Mesh>>,
-               mut materials: ResMut<Assets<ColorMaterial>>,
-               win_height: f32,
-               win_width: f32,
-               position: Vec2,
+#[derive(Component)]
+struct Vertex;
+
+#[derive(Component)]
+struct Edge;
+
+// This function draws the graph on the canvas on every new frame
+fn draw_graph(mut commands: Commands,
+              mut meshes: ResMut<Assets<Mesh>>,
+              mut materials: ResMut<Assets<ColorMaterial>>,
+              mut lines: ResMut<DebugLines>,
+              window: Query<&mut Window>,
+              vertex_list: ResMut<VertexList>,
+              edge_list: ResMut<EdgeList>,
 )
 {
-    commands.spawn(MaterialMesh2dBundle
+    let win = window.single();
+
+    let mut x1: f32;
+    let mut y1: f32;
+
+    let mut x2: f32;
+    let mut y2: f32;
+
+    let duration: f32 = f32::MAX;
+
+    commands.despawn_all::<With<Vertex>>();
+
+    for i in 0..vertex_list.count
     {
-        mesh: meshes.add(shape::Circle::new(15.).into()).into(),
-        material: materials.add(ColorMaterial::from(Color::WHITE)),
-        transform: Transform::from_translation(Vec3::new(position.x - (win_width / 2.), position.y - (win_height / 2.), 0.)),
-        ..default()
-    });
+        commands.spawn(MaterialMesh2dBundle
+        {
+            mesh: meshes.add(shape::Circle::new(15.).into()).into(),
+            material: materials.add(ColorMaterial::from(Color::WHITE)),
+            transform: Transform::from_translation(Vec3::new(vertex_list.vector[(i as usize)].2, vertex_list.vector[(i as usize)].1, 0.)),
+            ..default()
+        }).insert(Vertex);
+    }
+
+    for i in 0..edge_list.count
+    {
+        x1 = vertex_list.vector[(edge_list.vector[(i as usize)].0 - 1) as usize].2;
+        y1 = vertex_list.vector[(edge_list.vector[(i as usize)].0 - 1) as usize].1;
+
+        x2 = vertex_list.vector[(edge_list.vector[(i as usize)].1 - 1) as usize].2;
+        y2 = vertex_list.vector[(edge_list.vector[(i as usize)].1 - 1) as usize].1;
+
+        lines.line(
+            Vec3::new(x1, y1, 0.),
+            Vec3::new(x2, y2, 0.),
+            duration,
+        );
+    }
 }

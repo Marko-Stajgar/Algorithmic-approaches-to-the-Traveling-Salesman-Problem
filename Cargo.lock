@@ -412,6 +412,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_despawn_with"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "14bff973db7c53584bbfec11c40bfcc99a60ca018360c4326a194f028a094f8a"
+dependencies = [
+ "bevy",
+]
+
+[[package]]
 name = "bevy_diagnostic"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1150,6 +1159,7 @@ name = "computation_engine"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_despawn_with",
  "bevy_prototype_debug_lines",
 ]
 
