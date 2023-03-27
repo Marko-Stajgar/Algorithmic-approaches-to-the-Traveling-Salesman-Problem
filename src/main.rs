@@ -398,6 +398,17 @@ fn graph_handler(
     let win = window.single();
     let count: u32;
 
+    let mut x1: f32 = 0.;
+    let mut y1: f32 = 0.;
+
+    let mut x2: f32 = 0.;
+    let mut y2: f32 = 0.;
+
+    let mut distance_x: f32 = 0.;
+    let mut distance_y: f32 = 0.;
+
+    let mut temp: f32 = 0.;
+
     if mouse_button_input.just_pressed(MouseButton::Left)
     {
         vertex_list.count += 1;
@@ -416,7 +427,29 @@ fn graph_handler(
         {
             for i in 1..count
             {
-                edge_list.vector.push((count, i, 0.));
+                x1 = vertex_list.vector[(count - 1) as usize].2;
+                y1 = vertex_list.vector[(count - 1) as usize].1;
+
+                x2 = vertex_list.vector[(i - 1) as usize].2;
+                y2 = vertex_list.vector[(i - 1) as usize].1;
+
+                if x2 < x1
+                {
+                    temp = x1;
+                    x1 = x2;
+                    x2 = temp;
+
+                    temp = y1;
+                    y1 = y2;
+                    y2 = temp;
+                }
+
+                distance_x = (x2 - x1).abs();
+                distance_y = (y2 - y1).abs();
+
+
+
+                edge_list.vector.push((count, i, (distance_x.powf(2.) + distance_y.powf(2.)).sqrt()));
                 println!("new edge: {:?}", edge_list.vector[(edge_list.vector.len() - 1) as usize]);
             }
         }
@@ -426,7 +459,7 @@ fn graph_handler(
             edge_count_text.sections[0].value = format!("Number of edges: {}", edge_list.count.to_string())
         }
 
-        draw_graph(commands, meshes, materials, lines, asset_server, window, vertex_list, edge_list);
+        draw_graph(commands, meshes, materials, lines, asset_server, window, vertex_list, edge_list, x1, y1, x2, y2);
     }
 }
 
@@ -448,15 +481,14 @@ fn draw_graph(mut commands: Commands,
               window: Query<&mut Window>,
               vertex_list: ResMut<VertexList>,
               edge_list: ResMut<EdgeList>,
+              mut x1: f32,
+              mut y1: f32,
+              mut x2: f32,
+              mut y2: f32,
 )
 {
     let win = window.single();
 
-    let mut x1: f32;
-    let mut y1: f32;
-
-    let mut x2: f32;
-    let mut y2: f32;
 
     let duration: f32 = f32::MAX;
 
