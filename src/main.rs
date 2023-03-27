@@ -447,8 +447,6 @@ fn graph_handler(
                 distance_x = (x2 - x1).abs();
                 distance_y = (y2 - y1).abs();
 
-
-
                 edge_list.vector.push((count, i, (distance_x.powf(2.) + distance_y.powf(2.)).sqrt()));
                 println!("new edge: {:?}", edge_list.vector[(edge_list.vector.len() - 1) as usize]);
             }
