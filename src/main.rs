@@ -426,12 +426,15 @@ fn graph_handler(
             edge_count_text.sections[0].value = format!("Number of edges: {}", edge_list.count.to_string())
         }
 
-        draw_graph(commands, meshes, materials, lines, window, vertex_list, edge_list);
+        draw_graph(commands, meshes, materials, lines, asset_server, window, vertex_list, edge_list);
     }
 }
 
 #[derive(Component)]
 struct Vertex;
+
+#[derive(Component)]
+struct VertexNumber;
 
 #[derive(Component)]
 struct Edge;
@@ -441,6 +444,7 @@ fn draw_graph(mut commands: Commands,
               mut meshes: ResMut<Assets<Mesh>>,
               mut materials: ResMut<Assets<ColorMaterial>>,
               mut lines: ResMut<DebugLines>,
+              asset_server: Res<AssetServer>,
               window: Query<&mut Window>,
               vertex_list: ResMut<VertexList>,
               edge_list: ResMut<EdgeList>,
@@ -463,10 +467,35 @@ fn draw_graph(mut commands: Commands,
         commands.spawn(MaterialMesh2dBundle
         {
             mesh: meshes.add(shape::Circle::new(15.).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::WHITE)),
+            material: materials.add(ColorMaterial::from(Color::BLACK)),
             transform: Transform::from_translation(Vec3::new(vertex_list.vector[(i as usize)].2, vertex_list.vector[(i as usize)].1, 0.)),
             ..default()
         }).insert(Vertex);
+
+        commands.spawn((
+            // Create a TextBundle that has a Text with a single section.
+            TextBundle::from_section(
+                // Accepts a `String` or any type that converts into a `String`, such as `&str`
+                vertex_list.vector[i as usize].0.to_string(),
+                TextStyle {
+                    font: asset_server.load("fonts/FiraSans-ExtraLight.ttf"),
+                    font_size: 30.0,
+                    color: Color::WHITE,
+                },
+            ) // Set the alignment of the Text
+                .with_text_alignment(TextAlignment::Left)
+                // Set the style of the TextBundle itself.
+                .with_style(Style {
+                    position_type: PositionType::Absolute,
+                    position: UiRect {
+                        bottom: Val::Px(vertex_list.vector[(i as usize)].1 + (win.height() / 2.) - 50.),
+                        left: Val::Px(vertex_list.vector[(i as usize)].2 + (win.width() / 2.) - 5.),
+                        ..default()
+                    },
+                    ..default()
+                }),
+            VertexNumber,
+        ));
     }
 
     for i in 0..edge_list.count
@@ -477,10 +506,11 @@ fn draw_graph(mut commands: Commands,
         x2 = vertex_list.vector[(edge_list.vector[(i as usize)].1 - 1) as usize].2;
         y2 = vertex_list.vector[(edge_list.vector[(i as usize)].1 - 1) as usize].1;
 
-        lines.line(
+        lines.line_colored(
             Vec3::new(x1, y1, 0.),
             Vec3::new(x2, y2, 0.),
             duration,
+            Color::BLACK,
         );
     }
 }
