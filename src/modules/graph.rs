@@ -1,11 +1,8 @@
 use crate::app;
 
-use std::fmt::Debug;
 use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
-    window::{PresentMode},
-    input::keyboard::KeyboardInput,
 };
 use bevy_despawn_with::DespawnAllCommandsExt;
 use bevy_prototype_debug_lines::*;
@@ -27,12 +24,12 @@ pub struct EdgeList
 }
 
 pub fn graph_handler(
-    mut commands: Commands,
+    commands: Commands,
     asset_server: Res<AssetServer>,
-    mut lines: ResMut<DebugLines>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut mouse_button_input: Res<Input<MouseButton>>,
+    lines: ResMut<DebugLines>,
+    meshes: ResMut<Assets<Mesh>>,
+    materials: ResMut<Assets<ColorMaterial>>,
+    mouse_button_input: Res<Input<MouseButton>>,
     window: Query<&mut Window>,
     mut vertex_list: ResMut<VertexList>,
     mut edge_list: ResMut<EdgeList>,

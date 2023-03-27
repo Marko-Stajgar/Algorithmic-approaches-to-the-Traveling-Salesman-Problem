@@ -1,14 +1,6 @@
-use crate::graph;
-
-use std::fmt::Debug;
 use bevy::{
     prelude::*,
-    sprite::MaterialMesh2dBundle,
-    window::{PresentMode},
-    input::keyboard::KeyboardInput,
 };
-use bevy_despawn_with::DespawnAllCommandsExt;
-use bevy_prototype_debug_lines::*;
 
 #[derive(Component)]
 pub struct ConsoleInputText;
@@ -245,8 +237,6 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>)
 
 // This system takes keyboard input and updates the console text on screen accordingly
 pub fn console_input(
-    mut commands: Commands,
-    mut asset_server: Res<AssetServer>,
     mut char_evr: EventReader<ReceivedCharacter>,
     keys: Res<Input<KeyCode>>,
     mut console_past_command3: Local<String>,
