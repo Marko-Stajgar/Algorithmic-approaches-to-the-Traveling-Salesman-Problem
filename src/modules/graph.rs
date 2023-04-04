@@ -21,7 +21,7 @@ pub struct EdgeList {
 
 #[derive(Resource)]
 pub struct ShortestCycle {
-    pub vector: Vec<u32>,
+    pub vector: Vec<(u32, u32)>,
     pub total_cycle_weight: f32,
 }
 
@@ -253,6 +253,7 @@ pub fn ant_colony_optimization(
     }
 
     release_ants(
+        shortest_cycle,
         number_of_ants,
         adjacency_matrix,
         pheromone_matrix,
@@ -261,26 +262,40 @@ pub fn ant_colony_optimization(
 }
 
 fn release_ants(
+    mut shortest_cycle: ResMut<ShortestCycle>,
     number_of_ants: u32,
     adjacency_matrix: DMatrix<f32>,
     mut pheromone_matrix: DMatrix<f32>,
     vertex_count: u32,
 ){
-    let mut rand_number: u32;
+    let mut rng = rand::thread_rng();
+    let mut current_vertex: u32 = 1;
+    let mut previous_vertex: u32;
 
     for i in 0..number_of_ants
     {
         let mut unvisited_vertices = Vec::new();
         let mut ant_pheromone_path = DMatrix::from_diagonal_element(vertex_count as usize, vertex_count as usize, 0.0);
 
-        for j in 0..vertex_count
+        for j in 1..vertex_count
         {
-            unvisited_vertices.push(j);
-            println!("unvisited_vertices[{}] = {}", j, unvisited_vertices[j as usize]);
+            unvisited_vertices.push(j + 1);
+            println!("unvisited_vertices[{}] = {}", j - 1, unvisited_vertices[j as usize - 1]);
         }
 
         println!("----------------------------------------");
 
-        
+        previous_vertex = current_vertex;
+        current_vertex = unvisited_vertices[rng.gen_range(0..unvisited_vertices.len())];
+        unvisited_vertices.remove(current_vertex as usize - 2);
+        shortest_cycle.vector.push((previous_vertex, current_vertex));
+
+        for j in 0..unvisited_vertices.len()
+        {
+            println!("unvisited_vertices[{}] = {}", j, unvisited_vertices[j as usize]);
+        }
+
+        println!("====================================================");
+
     }
 }
