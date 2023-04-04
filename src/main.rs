@@ -2,6 +2,8 @@
 mod app;
 #[path = "modules/graph.rs"]
 mod graph;
+#[path = "modules/console.rs"]
+mod console;
 
 use bevy::{prelude::*, window::{PresentMode, WindowResolution}};
 use bevy_prototype_debug_lines::*;
@@ -11,7 +13,6 @@ const WIN_HEIGHT: f32 = 1080.;
 
 fn main() {
     App::new()
-        .insert_resource(ClearColor(Color::rgb(0.17254902, 0.176470588, 0.176470588)))
         .insert_resource(graph::VertexList {
             vector: Vec::new(),
             count: 0,
@@ -20,7 +21,11 @@ fn main() {
             vector: Vec::new(),
             count: 0,
         })
-        .insert_resource(Msaa::default())
+        .insert_resource(graph::ShortestCycle {
+            vector: Vec::new(),
+            total_cycle_weight: 0.0,
+        })
+        // .insert_resource(ClearColor(Color::rgb(50., 0., 30.)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Computation Engine v1.0".into(),

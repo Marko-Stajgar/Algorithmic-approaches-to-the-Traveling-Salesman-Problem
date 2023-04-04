@@ -1,3 +1,6 @@
+use crate::console;
+use crate::graph;
+
 use bevy::{prelude::*, render::camera::ScalingMode};
 
 #[derive(Component)]
@@ -234,6 +237,9 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 // This system takes keyboard input and updates the console text on screen accordingly
 pub fn console_input(
+    vertex_list: Res<graph::VertexList>,
+    edge_list: Res<graph::EdgeList>,
+    shortest_cycle: ResMut<graph::ShortestCycle>,
     mut char_evr: EventReader<ReceivedCharacter>,
     keys: Res<Input<KeyCode>>,
     mut console_past_command3: Local<String>,
@@ -260,6 +266,7 @@ pub fn console_input(
     }
 
     if keys.just_pressed(KeyCode::Return) {
+
         *console_past_command3 = console_past_command2.to_string();
         *console_past_command2 = console_past_command1.to_string();
         *console_past_command1 = string.to_string();
@@ -270,6 +277,13 @@ pub fn console_input(
         println!("Console past command2: {}", *console_past_command2);
         println!("Console past command3: {}", *console_past_command3);
         */
+
+        console::execute_input(
+            vertex_list,
+            edge_list,
+            shortest_cycle,
+            &string,
+        );
 
         string.clear();
 

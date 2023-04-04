@@ -1,5 +1,6 @@
 use crate::app;
-
+use rand::Rng;
+use nalgebra::{DMatrix, Matrix};
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::WindowResized};
 use bevy_despawn_with::DespawnAllCommandsExt;
 use bevy_prototype_debug_lines::*;
@@ -18,10 +19,16 @@ pub struct EdgeList {
     pub count: u32,
 }
 
+#[derive(Resource)]
+pub struct ShortestCycle {
+    pub vector: Vec<u32>,
+    pub total_cycle_weight: f32,
+}
+
 pub fn graph_handler(
     commands: Commands,
     asset_server: Res<AssetServer>,
-    lines: ResMut<DebugLines>,
+    lines: ResMut<DebugLines>, 
     meshes: ResMut<Assets<Mesh>>,
     materials: ResMut<Assets<ColorMaterial>>,
     mouse_button_input: Res<Input<MouseButton>>,
@@ -126,7 +133,6 @@ pub fn draw_graph(
     mut lines: ResMut<DebugLines>,
     asset_server: Res<AssetServer>,
     window: Query<&mut Window>,
-    resize_events: Res<Events<WindowResized>>,
     vertex_list: ResMut<VertexList>,
     edge_list: ResMut<EdgeList>,
 ) {
@@ -183,7 +189,8 @@ pub fn draw_graph(
         ));
     }
 
-    for i in 0..edge_list.count {
+    for i in 0..edge_list.count 
+    {
         x1 = vertex_list.vector[(edge_list.vector[(i as usize)].0 - 1) as usize].2;
         y1 = vertex_list.vector[(edge_list.vector[(i as usize)].0 - 1) as usize].1;
 
@@ -196,5 +203,84 @@ pub fn draw_graph(
             duration,
             Color::BLACK,
         );
+    }
+}
+
+
+// This function returns the shortest path using the Louisis Ibarras (2009)
+// algorith for finding hamiltonian cycles for proper integral graphs
+pub fn ibarras_algorithm(
+    mut lines: ResMut<DebugLines>,
+    vertex_list: ResMut<VertexList>,
+    edge_list: ResMut<EdgeList>,
+    shortest_cycle: ResMut<ShortestCycle>,
+){
+
+}
+
+#[derive(Resource)]
+struct adjacency_matrix{
+    
+}
+
+// This function returns the shortest path using the Ant-Colony Optimization algorithm
+pub fn ant_colony_optimization(
+    vertex_list: Res<VertexList>,
+    edge_list: Res<EdgeList>,
+    shortest_cycle: ResMut<ShortestCycle>,
+    number_of_ants: u32,
+    pheromone_constant: f32,
+    pheromone_evaporation_rate: f32,
+){
+    let count = vertex_list.count;
+
+    let mut adjacency_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
+    let mut pheromone_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
+
+    for i in 0..edge_list.count
+    {
+        adjacency_matrix[(edge_list.vector[i as usize].1 as usize - 1, edge_list.vector[i as usize].0 as usize - 1)] = edge_list.vector[i as usize].2;
+        adjacency_matrix[(edge_list.vector[i as usize].0 as usize - 1 ,edge_list.vector[i as usize].1 as usize - 1)] = edge_list.vector[i as usize].2;
+    }
+
+    for i in 0..count
+    {
+        for j in 0..count
+        {
+            print!("{}, ", adjacency_matrix[(i as usize, j as usize)]);
+        }
+        println!();
+    }
+
+    release_ants(
+        number_of_ants,
+        adjacency_matrix,
+        pheromone_matrix,
+        count,
+    );
+}
+
+fn release_ants(
+    number_of_ants: u32,
+    adjacency_matrix: DMatrix<f32>,
+    mut pheromone_matrix: DMatrix<f32>,
+    vertex_count: u32,
+){
+    let mut rand_number: u32;
+
+    for i in 0..number_of_ants
+    {
+        let mut unvisited_vertices = Vec::new();
+        let mut ant_pheromone_path = DMatrix::from_diagonal_element(vertex_count as usize, vertex_count as usize, 0.0);
+
+        for j in 0..vertex_count
+        {
+            unvisited_vertices.push(j);
+            println!("unvisited_vertices[{}] = {}", j, unvisited_vertices[j as usize]);
+        }
+
+        println!("----------------------------------------");
+
+        
     }
 }
