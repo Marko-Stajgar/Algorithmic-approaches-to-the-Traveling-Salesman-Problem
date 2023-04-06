@@ -269,13 +269,18 @@ fn release_ants(
     vertex_count: u32,
 ){
     let mut rng = rand::thread_rng();
-    let mut current_vertex: u32 = 1;
+    let mut current_vertex: u32;
     let mut previous_vertex: u32;
+    let mut c: u32;
+    let mut vertex_for_removal_index: u32;
 
     for i in 0..number_of_ants
     {
-        let mut unvisited_vertices = Vec::new();
+        let mut unvisited_vertices: Vec<u32> = Vec::new();
         let mut ant_pheromone_path = DMatrix::from_diagonal_element(vertex_count as usize, vertex_count as usize, 0.0);
+
+        current_vertex = 1;
+        c = 2;
 
         for j in 1..vertex_count
         {
@@ -285,17 +290,28 @@ fn release_ants(
 
         println!("----------------------------------------");
 
-        previous_vertex = current_vertex;
-        current_vertex = unvisited_vertices[rng.gen_range(0..unvisited_vertices.len())];
-        unvisited_vertices.remove(current_vertex as usize - 2);
-        shortest_cycle.vector.push((previous_vertex, current_vertex));
-
-        for j in 0..unvisited_vertices.len()
+        while unvisited_vertices.len() > 0
         {
-            println!("unvisited_vertices[{}] = {}", j, unvisited_vertices[j as usize]);
+            previous_vertex = current_vertex;
+            current_vertex = unvisited_vertices[rng.gen_range(0..unvisited_vertices.len())];
+
+            // here binary search would propably be a good fit, implement for vertex_for_removal_index
+            // then remove the unvisited_vertices element on that index, algorithm should work from then on
+
+            unvisited_vertices.remove(current_vertex as usize - c as usize);
+            shortest_cycle.vector.push((previous_vertex, current_vertex));
+            // here we will add the pheromones by using the pheromone formula
+            ant_pheromone_path[(previous_vertex as usize - 1, current_vertex as usize - 1)] += 1.0;
+
+            for j in 0..unvisited_vertices.len()
+            {
+                println!("unvisited_vertices[{}] = {}", j, unvisited_vertices[j as usize]);
+            }
+
+            println!("====================================================");
+            c += 1;
         }
 
-        println!("====================================================");
-
+        pheromone_matrix += ant_pheromone_path;
     }
 }
