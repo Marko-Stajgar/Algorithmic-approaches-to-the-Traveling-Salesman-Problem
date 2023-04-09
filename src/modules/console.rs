@@ -14,13 +14,13 @@ pub fn execute_input(
 ){
     println!("execute command: {:?}", console_input);
 
-    if console_input == "solve using ant-colony-optimization\r"
+    if console_input == "test\r"
     {
         println!("executing command: {:?}", console_input);
 
         let number_of_ants: u32 = 5;
-        let pheromone_constant: f32 = 0.0;
-        let pheromone_evaporation_rate: f32 = 0.0;
+        let pheromone_constant: f32 =   1.0;
+        let pheromone_evaporation_rate: f32 = 0.2;
 
         graph::ant_colony_optimization(
             vertex_list,

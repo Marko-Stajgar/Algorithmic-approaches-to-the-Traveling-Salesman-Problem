@@ -254,25 +254,29 @@ pub fn ant_colony_optimization(
 
     release_ants(
         shortest_cycle,
-        number_of_ants,
         adjacency_matrix,
         pheromone_matrix,
         count,
+        number_of_ants,
+        pheromone_constant,
+        pheromone_evaporation_rate,
     );
 }
 
 fn release_ants(
     mut shortest_cycle: ResMut<ShortestCycle>,
-    number_of_ants: u32,
     adjacency_matrix: DMatrix<f32>,
     mut pheromone_matrix: DMatrix<f32>,
     vertex_count: u32,
+    number_of_ants: u32,
+    pheromone_constant: f32,
+    pheromone_evaporation_rate: f32,
 ){
     let mut rng = rand::thread_rng();
     let mut current_vertex: u32;
     let mut previous_vertex: u32;
+    let mut ant_tour_length: f32 = 0.0;
     let mut c: u32;
-    let mut vertex_for_removal_index: u32;
 
     for i in 0..number_of_ants
     {
@@ -280,7 +284,7 @@ fn release_ants(
         let mut ant_pheromone_path = DMatrix::from_diagonal_element(vertex_count as usize, vertex_count as usize, 0.0);
 
         current_vertex = 1;
-        c = 2;
+        ant_tour_length = 0.0;
 
         for j in 1..vertex_count
         {
@@ -292,16 +296,25 @@ fn release_ants(
 
         while unvisited_vertices.len() > 0
         {
+            let mut propability_list: Vec<f32> = Vec::new();
+
+            for j in 0..unvisited_vertices.len()
+            {
+                
+            }
+
+            //c = rng.gen_range(0..unvisited_vertices.len()) as u32;
+
             previous_vertex = current_vertex;
-            current_vertex = unvisited_vertices[rng.gen_range(0..unvisited_vertices.len())];
+            current_vertex = unvisited_vertices[c as usize];
 
-            // here binary search would propably be a good fit, implement for vertex_for_removal_index
-            // then remove the unvisited_vertices element on that index, algorithm should work from then on
-
-            unvisited_vertices.remove(current_vertex as usize - c as usize);
+            unvisited_vertices.remove(c as usize);
             shortest_cycle.vector.push((previous_vertex, current_vertex));
-            // here we will add the pheromones by using the pheromone formula
+            
+            ant_tour_length += adjacency_matrix[(previous_vertex as usize - 1, current_vertex as usize - 1)];
+            
             ant_pheromone_path[(previous_vertex as usize - 1, current_vertex as usize - 1)] += 1.0;
+            ant_pheromone_path[(current_vertex as usize - 1 ,previous_vertex as usize - 1)] += 1.0;
 
             for j in 0..unvisited_vertices.len()
             {
@@ -309,9 +322,37 @@ fn release_ants(
             }
 
             println!("====================================================");
-            c += 1;
         }
 
+        ant_tour_length += adjacency_matrix[(current_vertex as usize - 1, 0)];
+
+        shortest_cycle.vector.push((current_vertex, 1));
+        ant_pheromone_path[(current_vertex as usize - 1, 0)] += 1.0;
+        ant_pheromone_path[(0, current_vertex as usize - 1)] += 1.0;
+
+        for j in 0..vertex_count
+        {
+            for x in 0..vertex_count
+            {
+                if ant_pheromone_path[(x as usize, j as usize)] > 0.0
+                {
+                    ant_pheromone_path[(x as usize, j as usize)] = pheromone_constant / ant_tour_length;
+                }
+            }
+        }
+
+        pheromone_matrix *= 1.0 - pheromone_evaporation_rate;
         pheromone_matrix += ant_pheromone_path;
+
+        for j in 0..vertex_count
+        {
+            for x in 0..vertex_count
+            {
+                print!("{} ,", pheromone_matrix[(x as usize, j as usize)]);
+            }
+            println!();
+        }
+
+        println!("Ant tour length: {}", ant_tour_length);
     }
 }
