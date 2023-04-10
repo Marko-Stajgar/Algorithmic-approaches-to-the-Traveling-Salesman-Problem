@@ -236,6 +236,7 @@ pub fn ant_colony_optimization(
 
     let mut adjacency_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
     let mut pheromone_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
+    let mut ant_paths: Vec<(DMatrix<f32>, f32)> = Vec::new();
 
     for i in 0..edge_list.count
     {
@@ -243,50 +244,51 @@ pub fn ant_colony_optimization(
         adjacency_matrix[(edge_list.vector[i as usize].0 as usize - 1 ,edge_list.vector[i as usize].1 as usize - 1)] = edge_list.vector[i as usize].2;
     }
 
-    for i in 0..count
-    {
-        for j in 0..count
-        {
-            print!("{}, ", adjacency_matrix[(i as usize, j as usize)]);
-        }
-        println!();
-    }
+    ant_paths = release_ants(
+        &adjacency_matrix,
+        &pheromone_matrix,
+        ant_paths,
+        &count,
+        &number_of_ants,
+        &pheromone_constant,
+        &pheromone_evaporation_rate,
+    );
 
-    release_ants(
-        shortest_cycle,
-        adjacency_matrix,
+    pheromone_matrix = update_pheromones(
+        &adjacency_matrix,
         pheromone_matrix,
-        count,
-        number_of_ants,
-        pheromone_constant,
-        pheromone_evaporation_rate,
+        &ant_paths,
+        &pheromone_constant,
+        &pheromone_evaporation_rate,
+        &count,
     );
 }
 
 fn release_ants(
-    mut shortest_cycle: ResMut<ShortestCycle>,
-    adjacency_matrix: DMatrix<f32>,
-    mut pheromone_matrix: DMatrix<f32>,
-    vertex_count: u32,
-    number_of_ants: u32,
-    pheromone_constant: f32,
-    pheromone_evaporation_rate: f32,
-){
+    adjacency_matrix: &DMatrix<f32>,
+    pheromone_matrix: &DMatrix<f32>,
+    mut ant_paths: Vec<(DMatrix<f32>, f32)>,
+    vertex_count: &u32,
+    number_of_ants: &u32,
+    pheromone_constant: &f32,
+    pheromone_evaporation_rate: &f32,
+) -> Vec<(DMatrix<f32>, f32)> {
     let mut rng = rand::thread_rng();
     let mut current_vertex: u32;
     let mut previous_vertex: u32;
     let mut ant_tour_length: f32 = 0.0;
     let mut c: u32;
+    let mut propability_sum: f32 = 0.0;
 
-    for i in 0..number_of_ants
+    for i in 0..*number_of_ants
     {
         let mut unvisited_vertices: Vec<u32> = Vec::new();
-        let mut ant_pheromone_path = DMatrix::from_diagonal_element(vertex_count as usize, vertex_count as usize, 0.0);
+        let mut ant_path = DMatrix::from_diagonal_element(*vertex_count as usize, *vertex_count as usize, 0.0);
 
         current_vertex = 1;
         ant_tour_length = 0.0;
 
-        for j in 1..vertex_count
+        for j in 1..*vertex_count
         {
             unvisited_vertices.push(j + 1);
             println!("unvisited_vertices[{}] = {}", j - 1, unvisited_vertices[j as usize - 1]);
@@ -300,21 +302,25 @@ fn release_ants(
 
             for j in 0..unvisited_vertices.len()
             {
-                
+                propability_sum += (pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
             }
 
-            //c = rng.gen_range(0..unvisited_vertices.len()) as u32;
+            for j in 0..unvisited_vertices.len()
+            {
+                propability_list.push((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * ( 1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum);
+            }
+
+            c = rng.gen_range(0..unvisited_vertices.len()) as u32;
 
             previous_vertex = current_vertex;
             current_vertex = unvisited_vertices[c as usize];
 
             unvisited_vertices.remove(c as usize);
-            shortest_cycle.vector.push((previous_vertex, current_vertex));
             
             ant_tour_length += adjacency_matrix[(previous_vertex as usize - 1, current_vertex as usize - 1)];
             
-            ant_pheromone_path[(previous_vertex as usize - 1, current_vertex as usize - 1)] += 1.0;
-            ant_pheromone_path[(current_vertex as usize - 1 ,previous_vertex as usize - 1)] += 1.0;
+            ant_path[(previous_vertex as usize - 1, current_vertex as usize - 1)] += 1.0;
+            ant_path[(current_vertex as usize - 1 ,previous_vertex as usize - 1)] += 1.0;
 
             for j in 0..unvisited_vertices.len()
             {
@@ -326,33 +332,55 @@ fn release_ants(
 
         ant_tour_length += adjacency_matrix[(current_vertex as usize - 1, 0)];
 
-        shortest_cycle.vector.push((current_vertex, 1));
-        ant_pheromone_path[(current_vertex as usize - 1, 0)] += 1.0;
-        ant_pheromone_path[(0, current_vertex as usize - 1)] += 1.0;
+        ant_path[(current_vertex as usize - 1, 0)] += 1.0;
+        ant_path[(0, current_vertex as usize - 1)] += 1.0;
 
-        for j in 0..vertex_count
+        ant_paths.push((ant_path, ant_tour_length));
+
+        println!("Ant tour length: {}" , ant_tour_length);
+    }
+
+    return ant_paths;
+}
+
+fn update_pheromones(
+    adjacency_matrix: &DMatrix<f32>,
+    mut pheromone_matrix: DMatrix<f32>,
+    ant_paths: &Vec<(DMatrix<f32>, f32)>,
+    pheromone_constant: &f32,
+    pheromone_evaporation_rate: &f32,
+    vertex_count: &u32,
+) -> DMatrix<f32> {
+    pheromone_matrix *= 1.0 - pheromone_evaporation_rate;
+
+    for i in 0..ant_paths.len()
+    {
+        let mut ant_pheromone_path = DMatrix::from_diagonal_element(*vertex_count as usize, *vertex_count as usize, 0.0);
+
+        for j in 0..*vertex_count
         {
-            for x in 0..vertex_count
+            for x in 0..*vertex_count
             {
-                if ant_pheromone_path[(x as usize, j as usize)] > 0.0
+                if ant_paths[i].0[(x as usize, j as usize)] > 0.0
                 {
-                    ant_pheromone_path[(x as usize, j as usize)] = pheromone_constant / ant_tour_length;
+                    ant_pheromone_path[(x as usize, j as usize)] = pheromone_constant / ant_paths[i].1;
                 }
             }
         }
 
-        pheromone_matrix *= 1.0 - pheromone_evaporation_rate;
         pheromone_matrix += ant_pheromone_path;
 
-        for j in 0..vertex_count
+        for j in 0..*vertex_count
         {
-            for x in 0..vertex_count
+            for x in 0..*vertex_count
             {
                 print!("{} ,", pheromone_matrix[(x as usize, j as usize)]);
             }
             println!();
         }
 
-        println!("Ant tour length: {}", ant_tour_length);
+        println!("-------------------------------------------------------------------");
     }
+
+    return pheromone_matrix;
 }
