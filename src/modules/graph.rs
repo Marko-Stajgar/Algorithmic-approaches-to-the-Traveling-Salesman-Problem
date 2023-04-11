@@ -1,5 +1,6 @@
 use crate::app;
 use rand::Rng;
+use rand_distr::{Distribution, WeightedIndex};
 use nalgebra::{DMatrix, Matrix};
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::WindowResized};
 use bevy_despawn_with::DespawnAllCommandsExt;
@@ -218,11 +219,6 @@ pub fn ibarras_algorithm(
 
 }
 
-#[derive(Resource)]
-struct adjacency_matrix{
-    
-}
-
 // This function returns the shortest path using the Ant-Colony Optimization algorithm
 pub fn ant_colony_optimization(
     vertex_list: Res<VertexList>,
@@ -233,6 +229,7 @@ pub fn ant_colony_optimization(
     pheromone_evaporation_rate: f32,
 ){
     let count = vertex_list.count;
+    let mut tour_count: u32 = 0;
 
     let mut adjacency_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
     let mut pheromone_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
@@ -244,24 +241,31 @@ pub fn ant_colony_optimization(
         adjacency_matrix[(edge_list.vector[i as usize].0 as usize - 1 ,edge_list.vector[i as usize].1 as usize - 1)] = edge_list.vector[i as usize].2;
     }
 
-    ant_paths = release_ants(
-        &adjacency_matrix,
-        &pheromone_matrix,
-        ant_paths,
-        &count,
-        &number_of_ants,
-        &pheromone_constant,
-        &pheromone_evaporation_rate,
-    );
+    while shortest_cycle.vector.len() as u32 != count
+    {
+        tour_count += 1;
 
-    pheromone_matrix = update_pheromones(
-        &adjacency_matrix,
-        pheromone_matrix,
-        &ant_paths,
-        &pheromone_constant,
-        &pheromone_evaporation_rate,
-        &count,
-    );
+        println!("////////////////////////////////////// {}'st Tour ///////////////////////////////////////////////", tour_count);
+
+        ant_paths = release_ants(
+            &adjacency_matrix,
+            &pheromone_matrix,
+            ant_paths,
+            &count,
+            &number_of_ants,
+            &pheromone_constant,
+            &pheromone_evaporation_rate,
+        );
+
+        pheromone_matrix = update_pheromones(
+            &adjacency_matrix,
+            pheromone_matrix,
+            &ant_paths,
+            &pheromone_constant,
+            &pheromone_evaporation_rate,
+            &count,
+        );
+    }
 }
 
 fn release_ants(
@@ -278,6 +282,7 @@ fn release_ants(
     let mut previous_vertex: u32;
     let mut ant_tour_length: f32 = 0.0;
     let mut c: u32;
+    let mut distribution;
     let mut propability_sum: f32 = 0.0;
 
     for i in 0..*number_of_ants
@@ -298,19 +303,44 @@ fn release_ants(
 
         while unvisited_vertices.len() > 0
         {
-            let mut propability_list: Vec<f32> = Vec::new();
+            let mut propability_list: Vec<f64> = Vec::new();
+            propability_sum = 0.0;
 
             for j in 0..unvisited_vertices.len()
             {
-                propability_sum += (pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
+                println!("Information used in propability calculation: ");
+                println!("Amount of pheromones laid on edge {} - {} stored in the pheromone matrix: {}", unvisited_vertices[j], current_vertex, pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
+                println!("Weight assigned to edge {} - {} stored in the adjacency matrix: {}", unvisited_vertices[j], current_vertex, adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
+
+                propability_sum += (pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]));
             }
 
-            for j in 0..unvisited_vertices.len()
+            /*for j in 0..unvisited_vertices.len()
             {
-                propability_list.push((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * ( 1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum);
-            }
+                propability_list.push((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum);
+                println!("Propability for vertex {}: {}", unvisited_vertices[j], propability_list[j]);
+            }*/
 
-            c = rng.gen_range(0..unvisited_vertices.len()) as u32;
+            if propability_sum == 0.0 {
+                let equal_prob = 1.0 / unvisited_vertices.len() as f64;
+
+                for j in 0..unvisited_vertices.len() {
+                    propability_list.push(equal_prob);
+                    println!("Propability for vertex {}: {}", unvisited_vertices[j], equal_prob);
+                }
+            } else {
+                for j in 0..unvisited_vertices.len() {
+                    let prob: f64 = ((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum) as f64;
+                    
+                    propability_list.push(prob);
+                    println!("Propability for vertex {}: {}", unvisited_vertices[j], prob);
+                }
+            }
+            
+
+            distribution = WeightedIndex::new(&propability_list).unwrap();
+            c = distribution.sample(&mut rng) as u32;
+            
 
             previous_vertex = current_vertex;
             current_vertex = unvisited_vertices[c as usize];
@@ -351,8 +381,6 @@ fn update_pheromones(
     pheromone_evaporation_rate: &f32,
     vertex_count: &u32,
 ) -> DMatrix<f32> {
-    pheromone_matrix *= 1.0 - pheromone_evaporation_rate;
-
     for i in 0..ant_paths.len()
     {
         let mut ant_pheromone_path = DMatrix::from_diagonal_element(*vertex_count as usize, *vertex_count as usize, 0.0);
@@ -368,7 +396,7 @@ fn update_pheromones(
             }
         }
 
-        pheromone_matrix += ant_pheromone_path;
+        pheromone_matrix = pheromone_matrix*(1.0 - pheromone_evaporation_rate) + ant_pheromone_path;
 
         for j in 0..*vertex_count
         {
