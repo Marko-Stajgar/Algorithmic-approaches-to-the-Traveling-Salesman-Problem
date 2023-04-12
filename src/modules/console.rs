@@ -7,6 +7,7 @@ use bevy_despawn_with::DespawnAllCommandsExt;
 use bevy_prototype_debug_lines::*;
 
 pub fn execute_input(
+    mut lines: ResMut<DebugLines>,
     vertex_list: Res<graph::VertexList>,
     edge_list: Res<graph::EdgeList>,
     shortest_cycle: ResMut<graph::ShortestCycle>,
@@ -23,6 +24,7 @@ pub fn execute_input(
         let pheromone_evaporation_rate: f32 = 0.2;
 
         graph::ant_colony_optimization(
+            lines,
             vertex_list,
             edge_list,
             shortest_cycle,

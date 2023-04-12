@@ -2,6 +2,7 @@ use crate::console;
 use crate::graph;
 
 use bevy::{prelude::*, render::camera::ScalingMode};
+use bevy_prototype_debug_lines::*;
 
 #[derive(Component)]
 pub struct ConsoleInputText;
@@ -237,6 +238,7 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 // This system takes keyboard input and updates the console text on screen accordingly
 pub fn console_input(
+    mut lines: ResMut<DebugLines>,
     vertex_list: Res<graph::VertexList>,
     edge_list: Res<graph::EdgeList>,
     shortest_cycle: ResMut<graph::ShortestCycle>,
@@ -279,6 +281,7 @@ pub fn console_input(
         */
 
         console::execute_input(
+            lines,
             vertex_list,
             edge_list,
             shortest_cycle,

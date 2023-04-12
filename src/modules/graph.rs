@@ -128,6 +128,7 @@ struct Edge;
 
 // This function draws the graph on the canvas on every new frame
 pub fn draw_graph(
+    shortest_cycle: Res<ShortestCycle>,
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -221,15 +222,20 @@ pub fn ibarras_algorithm(
 
 // This function returns the shortest path using the Ant-Colony Optimization algorithm
 pub fn ant_colony_optimization(
+    mut lines: ResMut<DebugLines>,
     vertex_list: Res<VertexList>,
     edge_list: Res<EdgeList>,
-    shortest_cycle: ResMut<ShortestCycle>,
+     mut shortest_cycle: ResMut<ShortestCycle>,
     number_of_ants: u32,
     pheromone_constant: f32,
     pheromone_evaporation_rate: f32,
 ){
     let count = vertex_list.count;
     let mut tour_count: u32 = 0;
+    let mut x1: f32 = 0.0;
+    let mut x2: f32 = 0.0;
+    let mut y1: f32 = 0.0;
+    let mut y2: f32 = 0.0;
 
     let mut adjacency_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
     let mut pheromone_matrix = DMatrix::from_diagonal_element(count as usize, count as usize, 0.0);
@@ -241,9 +247,10 @@ pub fn ant_colony_optimization(
         adjacency_matrix[(edge_list.vector[i as usize].0 as usize - 1 ,edge_list.vector[i as usize].1 as usize - 1)] = edge_list.vector[i as usize].2;
     }
 
-    while shortest_cycle.vector.len() as u32 != count
+    while (shortest_cycle.vector.len() as u32) < count
     {
         tour_count += 1;
+        shortest_cycle.vector = Vec::new();
 
         println!("////////////////////////////////////// {}'st Tour ///////////////////////////////////////////////", tour_count);
 
@@ -265,6 +272,37 @@ pub fn ant_colony_optimization(
             &pheromone_evaporation_rate,
             &count,
         );
+
+        for x in 0..ant_paths.len()
+        {
+            for i in 0..count
+            {
+                for j in 0..count
+                {
+                    if i < j
+                    {
+                        if ant_paths[x].0[(j as usize, i as usize)] != 0.0
+                        {
+                            shortest_cycle.vector.push((i + 1, j + 1));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    for i in 0..shortest_cycle.vector.len()
+    {
+        for j in (i+1)..shortest_cycle.vector.len()
+        {
+            if shortest_cycle.vector[i] == shortest_cycle.vector[j]
+            {
+                shortest_cycle.vector.remove(j);
+                continue;
+            }
+        }
+
+        println!("Shortest cycle: {:?}", shortest_cycle.vector[(i)]);
     }
 }
 
@@ -283,7 +321,7 @@ fn release_ants(
     let mut ant_tour_length: f32 = 0.0;
     let mut c: u32;
     let mut distribution;
-    let mut propability_sum: f32 = 0.0;
+    let mut probability_sum: f32 = 0.0;
 
     for i in 0..*number_of_ants
     {
@@ -304,24 +342,18 @@ fn release_ants(
         while unvisited_vertices.len() > 0
         {
             let mut propability_list: Vec<f64> = Vec::new();
-            propability_sum = 0.0;
+            probability_sum = 0.0;
 
             for j in 0..unvisited_vertices.len()
             {
-                println!("Information used in propability calculation: ");
+                println!("Information used in probability calculation: ");
                 println!("Amount of pheromones laid on edge {} - {} stored in the pheromone matrix: {}", unvisited_vertices[j], current_vertex, pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
                 println!("Weight assigned to edge {} - {} stored in the adjacency matrix: {}", unvisited_vertices[j], current_vertex, adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
 
-                propability_sum += (pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]));
+                probability_sum += (pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]));
             }
 
-            /*for j in 0..unvisited_vertices.len()
-            {
-                propability_list.push((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum);
-                println!("Propability for vertex {}: {}", unvisited_vertices[j], propability_list[j]);
-            }*/
-
-            if propability_sum == 0.0 {
+            if probability_sum == 0.0 {
                 let equal_prob = 1.0 / unvisited_vertices.len() as f64;
 
                 for j in 0..unvisited_vertices.len() {
@@ -330,7 +362,7 @@ fn release_ants(
                 }
             } else {
                 for j in 0..unvisited_vertices.len() {
-                    let prob: f64 = ((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum) as f64;
+                    let prob: f64 = ((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / probability_sum) as f64;
                     
                     propability_list.push(prob);
                     println!("Propability for vertex {}: {}", unvisited_vertices[j], prob);
