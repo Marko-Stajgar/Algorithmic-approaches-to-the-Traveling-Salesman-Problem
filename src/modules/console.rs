@@ -14,7 +14,7 @@ pub fn execute_input(
 ){
     println!("execute command: {:?}", console_input);
 
-    if console_input == "compute using ant-colony\r"
+    if console_input == "solve with ant-colony\r"
     {
         println!("executing command: {:?}", console_input);
 
