@@ -7,12 +7,19 @@ mod console;
 
 use bevy::{prelude::*, window::{PresentMode, WindowResolution}};
 use bevy_prototype_debug_lines::*;
+use nalgebra::{DMatrix, Matrix};
 
 const WIN_WIDTH: f32 = 1920.;
 const WIN_HEIGHT: f32 = 1080.;
 
 fn main() {
     App::new()
+        .insert_resource(graph::EditMode {
+            activate: true,
+        })
+        .insert_resource(graph::AdjacencyMatrix {
+            matrix: DMatrix::from_diagonal_element(0, 0, 0.0),
+        })
         .insert_resource(graph::VertexList {
             vector: Vec::new(),
             count: 0,
@@ -25,7 +32,17 @@ fn main() {
             vector: Vec::new(),
             total_cycle_weight: 0.0,
         })
-        // .insert_resource(ClearColor(Color::rgb(50., 0., 30.)))
+        .insert_resource(graph::AntColonyParameters{
+            activate: false,
+            number_of_ants: 50,
+            pheromone_constant: 1.0,
+            pheromone_evaporation_rate: 0.2,
+            alpha: 1,
+            beta: 1,
+            pheromone_matrix: DMatrix::from_diagonal_element(0, 0, 0.0),
+            ant_paths: Vec::new(),
+        })
+        .insert_resource(ClearColor(Color::rgb(0.17254902, 0.176470588, 0.176470588)))
         .add_plugins(DefaultPlugins.set(WindowPlugin {
             primary_window: Some(Window {
                 title: "Computation Engine v1.0".into(),
@@ -46,5 +63,6 @@ fn main() {
         // -----------------------------
         .add_system(graph::graph_handler)
         .add_system(graph::draw_graph)
+        .add_system(graph::ant_colony_optimization)
         .run();
 }

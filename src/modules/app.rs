@@ -2,7 +2,6 @@ use crate::console;
 use crate::graph;
 
 use bevy::{prelude::*, render::camera::ScalingMode};
-use bevy_prototype_debug_lines::*;
 
 #[derive(Component)]
 pub struct ConsoleInputText;
@@ -25,6 +24,7 @@ pub struct EdgeCountText;
 #[derive(Component)]
 pub struct PossibleCyclesText;
 
+// Spawns all of the entities that are going to be used to display information
 pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn(Camera2dBundle::default());
 
@@ -40,17 +40,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Px(5.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
     ));
 
     // Spawns a text budnle representing the user console input in realtime
@@ -65,17 +65,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Px(5.0),
-                left: Val::Px(40.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(5.0),
+                    left: Val::Px(40.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         ConsoleInputText,
     ));
 
@@ -91,17 +91,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Px(40.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(40.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         ConsolePastCommand1,
     ));
 
@@ -117,17 +117,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Px(75.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(75.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         ConsolePastCommand2,
     ));
 
@@ -143,17 +143,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                bottom: Val::Px(110.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    bottom: Val::Px(110.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         ConsolePastCommand3,
     ));
 
@@ -169,17 +169,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                top: Val::Px(15.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    top: Val::Px(15.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         VertexCountText,
     ));
 
@@ -195,17 +195,17 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                top: Val::Px(50.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    top: Val::Px(50.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         EdgeCountText,
     ));
 
@@ -221,27 +221,26 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
                 color: Color::WHITE,
             },
         ) // Set the alignment of the Text
-        .with_text_alignment(TextAlignment::Left)
-        // Set the style of the TextBundle itself.
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                top: Val::Px(85.0),
-                left: Val::Px(15.0),
+            .with_text_alignment(TextAlignment::Left)
+            // Set the style of the TextBundle itself.
+            .with_style(Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    top: Val::Px(85.0),
+                    left: Val::Px(15.0),
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        }),
+            }),
         PossibleCyclesText,
     ));
 }
 
 // This system takes keyboard input and updates the console text on screen accordingly
 pub fn console_input(
-    mut lines: ResMut<DebugLines>,
+    mut edit_mode: ResMut<graph::EditMode>,
     vertex_list: Res<graph::VertexList>,
-    edge_list: Res<graph::EdgeList>,
-    shortest_cycle: ResMut<graph::ShortestCycle>,
+    mut ant_colony_parameters: ResMut<graph::AntColonyParameters>,
     mut char_evr: EventReader<ReceivedCharacter>,
     keys: Res<Input<KeyCode>>,
     mut console_past_command3: Local<String>,
@@ -273,18 +272,10 @@ pub fn console_input(
         *console_past_command2 = console_past_command1.to_string();
         *console_past_command1 = string.to_string();
 
-        /*
-        println!("Text input: {}", *string);
-        println!("Console past command1: {}", *console_past_command1);
-        println!("Console past command2: {}", *console_past_command2);
-        println!("Console past command3: {}", *console_past_command3);
-        */
-
         console::execute_input(
-            lines,
+            edit_mode,
             vertex_list,
-            edge_list,
-            shortest_cycle,
+            ant_colony_parameters,
             &string,
         );
 
@@ -312,7 +303,7 @@ pub fn console_input(
 pub fn session_time(mut windows: Query<&mut Window>, time: Res<Time>) {
     let mut window = windows.single_mut();
     window.title = format!(
-        "Computation Engine v1.0 - Session time {:?}",
+        "Jelinek-Alpha v1.0 - Session time {:?}",
         time.elapsed().as_secs_f32().round()
     );
 }

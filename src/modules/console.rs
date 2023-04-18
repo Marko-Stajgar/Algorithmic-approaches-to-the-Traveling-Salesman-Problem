@@ -7,30 +7,28 @@ use bevy_despawn_with::DespawnAllCommandsExt;
 use bevy_prototype_debug_lines::*;
 
 pub fn execute_input(
-    mut lines: ResMut<DebugLines>,
+    mut edit_mode: ResMut<graph::EditMode>,
     vertex_list: Res<graph::VertexList>,
-    edge_list: Res<graph::EdgeList>,
-    shortest_cycle: ResMut<graph::ShortestCycle>,
+    mut ant_colony_parameters: ResMut<graph::AntColonyParameters>,
     console_input: &str,
 ){
     println!("execute command: {:?}", console_input);
 
-    if console_input == "test\r"
+    if console_input == "compute using ant-colony\r"
     {
         println!("executing command: {:?}", console_input);
 
-        let number_of_ants: u32 = 5;
-        let pheromone_constant: f32 =   1.0;
-        let pheromone_evaporation_rate: f32 = 0.2;
+        edit_mode.activate = false;
 
-        graph::ant_colony_optimization(
-            lines,
-            vertex_list,
-            edge_list,
-            shortest_cycle,
-            number_of_ants,
-            pheromone_constant,
-            pheromone_evaporation_rate,
-        );
+        ant_colony_parameters.activate = true;
+        ant_colony_parameters.pheromone_matrix = DMatrix::from_diagonal_element(vertex_list.count as usize, vertex_list.count as usize, 0.0);
+    }
+
+    if console_input == "stop\r"
+    {
+        println!("executing command: {:?}", console_input);
+
+        ant_colony_parameters.activate = false;
+        edit_mode.activate = true;
     }
 }
