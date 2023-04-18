@@ -1,6 +1,6 @@
 # Algorithmic-approaches-to-the-Traveling-Salesman-Problem
 
-In this project i want to try and implement few algorithms for finding the shortest path through hamiltonian cycles in complete, weighted, undirected graphs, more popularly know as the Traveling-Salesman-Problem.
+In this project i want to try and implement few algorithms used for finding the shortest path through hamiltonian cycles in complete, weighted, undirected graphs, more popularly know as the Traveling-Salesman-Problem.
 
 The whole project is build using the [bevy](https://github.com/bevyengine/bevy) game engine.
 
