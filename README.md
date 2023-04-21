@@ -6,6 +6,7 @@ The whole project is build using the [bevy](https://github.com/bevyengine/bevy) 
 
 # How to install & run
 If you don't have rust & cargo installed, follow the guide for installation via [rustup](https://www.rust-lang.org/tools/install).
+
 Then clone the repository and run using `cargo run`.
 
 # In-app console commands
