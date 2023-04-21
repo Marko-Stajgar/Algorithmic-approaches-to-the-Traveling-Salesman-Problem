@@ -1,15 +1,15 @@
 # Algorithmic-approaches-to-the-Traveling-Salesman-Problem
 
-In this project i want to try and implement few algorithms for finding the shortest path through hamiltonian cycles in complete, weighted, undirected graphs, more popularly know as the Traveling-Salesman-Problem.
+In this project I want to try and implement few algorithms for finding the shortest path through [Hamiltonian cycles](https://en.wikipedia.org/wiki/Hamiltonian_path) in complete, weighted, undirected [graphs](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)), more popularly known as the [Traveling-Salesman-Problem](https://en.wikipedia.org/wiki/Travelling_salesman_problem).
 
 The whole project is build using the [bevy](https://github.com/bevyengine/bevy) game engine and [nalgebra](https://github.com/dimforge/nalgebra).
 
 # How to install & run
-If you dont have rust & cargo installed, follow the guide for installation via [rustup](https://www.rust-lang.org/tools/install).
+If you don't have rust & cargo installed, follow the guide for installation via [rustup](https://www.rust-lang.org/tools/install).
 Then clone the repository and run using `cargo run`.
 
 # In-app console commands
-The in-app console is enabled from the start and doesnt need any further activation. To enter a command just start typing and hit enter.
+The in-app console is enabled from the start and doesn't need any further activation. To enter a command, just start typing and hit enter.
 
 List of commands:
 
@@ -26,7 +26,7 @@ List of commands:
 
 # Ant-Colony-Optimization
 
-The first algorithm i chose to implement is the ant-colony-optimization. My implementation follows the standard pseudocode and equations mentioned in [this paper](https://www.semanticscholar.org/paper/Ant-colony-optimization%3A-artificial-ants-as-a-Dorigo-Birattari/058c6c7c37fb6970d322aad4a46c43b1cac0bf66) authored by Marco Dorigo, Mauro Birattari, and Thomas Stützle.
+The first algorithm I chose to implement is the ant-colony-optimization. My implementation follows the standard pseudocode and equations mentioned in [this paper](https://www.semanticscholar.org/paper/Ant-colony-optimization%3A-artificial-ants-as-a-Dorigo-Birattari/058c6c7c37fb6970d322aad4a46c43b1cac0bf66) authored by Marco Dorigo, Mauro Birattari, and Thomas Stützle.
 
 Activate using the `solve with ant-colony` command.
 
