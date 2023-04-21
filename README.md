@@ -40,10 +40,10 @@ Parameter names list in the form of `variable_name: type = default_value`:
 - constant that is used in "pheromone laid on path" calculation
 
 `pheromone_evaporation_rate: f32 = 0.2` 
-- rate at which all pheromones evaporate after each ant-cycle
+- rate at which all pheromones evaporate after each ant-cycle, use values only from interval <0.0, 1.0>
 
 `alpha: f32 = 1.0`
-- controls the relative importance of the "pheromone land on edge"
+- controls the relative importance of the "pheromone laid on edge"
 
 `beta: f32 = 4.0`
 - controls the relative importance of the heuristic information
