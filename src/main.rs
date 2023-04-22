@@ -5,9 +5,9 @@ mod graph;
 #[path = "modules/console.rs"]
 mod console;
 
-use bevy::{prelude::*, window::{PresentMode, WindowResolution}};
+use bevy::{prelude::*, window::PresentMode};
 use bevy_prototype_debug_lines::*;
-use nalgebra::{DMatrix, Matrix};
+use nalgebra::DMatrix;
 
 const WIN_WIDTH: f32 = 1920.;
 const WIN_HEIGHT: f32 = 1080.;

@@ -1,8 +1,7 @@
 use crate::app;
-use rand::Rng;
 use rand_distr::{Distribution, WeightedIndex};
-use nalgebra::{DMatrix, Matrix};
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::WindowResized};
+use nalgebra::DMatrix;
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use bevy_despawn_with::DespawnAllCommandsExt;
 use bevy_prototype_debug_lines::*;
 
@@ -40,14 +39,8 @@ pub struct ShortestCycle {
 
 // Waits for user input and stores it as a graph accordingly
 pub fn graph_handler(
-    commands: Commands,
-    asset_server: Res<AssetServer>,
-    lines: ResMut<DebugLines>,
-    meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<ColorMaterial>>,
     mouse_button_input: Res<Input<MouseButton>>,
     window: Query<&mut Window>,
-    resize_events: Res<Events<WindowResized>>,
     edit_mode: Res<EditMode>,
     mut adjacency_matrix: ResMut<AdjacencyMatrix>,
     mut vertex_list: ResMut<VertexList>,
@@ -64,16 +57,16 @@ pub fn graph_handler(
         let count: u32;
         let mut possible_cycles_count: u128 = 1;
 
-        let mut x1: f32 = 0.;
-        let mut y1: f32 = 0.;
+        let mut x1: f32;
+        let mut y1: f32;
 
-        let mut x2: f32 = 0.;
-        let mut y2: f32 = 0.;
+        let mut x2: f32;
+        let mut y2: f32;
 
-        let mut distance_x: f32 = 0.;
-        let mut distance_y: f32 = 0.;
+        let mut distance_x: f32;
+        let mut distance_y: f32;
 
-        let mut temp: f32 = 0.;
+        let mut temp: f32;
 
         if mouse_button_input.just_pressed(MouseButton::Left) {
             vertex_list.count += 1;
@@ -176,11 +169,11 @@ pub fn draw_graph(
     edge_list: ResMut<EdgeList>,
     shortest_cycle: ResMut<ShortestCycle>,
 ) {
-    let mut x1: f32 = 0.;
-    let mut y1: f32 = 0.;
+    let mut x1: f32;
+    let mut y1: f32;
 
-    let mut x2: f32 = 0.;
-    let mut y2: f32 = 0.;
+    let mut x2: f32;
+    let mut y2: f32;
 
     let win = window.single();
 
@@ -260,19 +253,6 @@ pub fn draw_graph(
     }
 }
 
-
-// This function returns the shortest path using the Louisis Ibarras (2009)
-// algorith for finding hamiltonian cycles for proper integral graphs
-pub fn ibarras_algorithm(
-    mut lines: ResMut<DebugLines>,
-    vertex_list: ResMut<VertexList>,
-    edge_list: ResMut<EdgeList>,
-    shortest_cycle: ResMut<ShortestCycle>,
-){
-
-}
-
-
 // This resource stores the parameters used in the ant-colony-system equations for updating pheromones and probability calculation
 #[derive(Resource)]
 pub struct AntColonyParameters{
@@ -298,9 +278,8 @@ pub fn ant_colony_optimization(
         let count = vertex_list.count;
 
         let mut ant_paths = ant_colony_parameters.ant_paths.clone();
-        let mut pheromone_matrix = ant_colony_parameters.pheromone_matrix.clone();
-        let mut shortest_cycle_vector = shortest_cycle.vector.clone();
-
+        let pheromone_matrix = ant_colony_parameters.pheromone_matrix.clone();
+        
         ant_colony_parameters.ant_paths = release_ants(
             ant_colony_parameters.alpha,
             ant_colony_parameters.beta,
@@ -314,7 +293,6 @@ pub fn ant_colony_optimization(
         ant_paths = ant_colony_parameters.ant_paths.clone();
 
         ant_colony_parameters.pheromone_matrix = update_pheromones(
-            &adjacency_matrix.matrix,
             pheromone_matrix,
             &ant_paths,
             &ant_colony_parameters.pheromone_constant,
@@ -343,12 +321,12 @@ fn release_ants(
     let mut rng = rand::thread_rng();
     let mut current_vertex: u32;
     let mut previous_vertex: u32;
-    let mut ant_tour_length: f32 = 0.0;
+    let mut ant_tour_length: f32;
     let mut c: u32;
     let mut distribution;
-    let mut propability_sum: f32 = 0.0;
+    let mut probability_sum: f32;
 
-    for i in 0..*number_of_ants
+    for _i in 0..*number_of_ants
     {
         let mut unvisited_vertices: Vec<u32> = Vec::new();
         let mut ant_path = DMatrix::from_diagonal_element(*vertex_count as usize, *vertex_count as usize, 0.0);
@@ -359,43 +337,43 @@ fn release_ants(
         for j in 1..*vertex_count
         {
             unvisited_vertices.push(j + 1);
-            println!("unvisited_vertices[{}] = {}", j - 1, unvisited_vertices[j as usize - 1]);
+            // println!("unvisited_vertices[{}] = {}", j - 1, unvisited_vertices[j as usize - 1]);
         }
 
-        println!("----------------------------------------");
+        // println!("----------------------------------------");
 
         while unvisited_vertices.len() > 0
         {
-            let mut propability_list: Vec<f64> = Vec::new();
-            propability_sum = 0.0;
+            let mut probability_list: Vec<f64> = Vec::new();
+            probability_sum = 0.0;
 
             for j in 0..unvisited_vertices.len()
             {
-                println!("Information used in propability calculation: ");
+                /*println!("Information used in probability calculation: ");
                 println!("Amount of pheromones laid on edge {} - {} stored in the pheromone matrix: {}", unvisited_vertices[j], current_vertex, pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
-                println!("Weight assigned to edge {} - {} stored in the adjacency matrix: {}", unvisited_vertices[j], current_vertex, adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
+                println!("Weight assigned to edge {} - {} stored in the adjacency matrix: {}", unvisited_vertices[j], current_vertex, adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);*/
 
-                propability_sum += (f32::powf(pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],alpha) * (f32::powf((1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]),beta)));
+                probability_sum += f32::powf(pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],alpha) * (f32::powf(1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],beta));
             }
 
-            if propability_sum == 0.0 {
+            if probability_sum == 0.0 {
                 let equal_prob = 1.0 / unvisited_vertices.len() as f64;
 
-                for j in 0..unvisited_vertices.len() {
-                    propability_list.push(equal_prob);
-                    println!("Propability for vertex {}: {}", unvisited_vertices[j], equal_prob);
+                for _j in 0..unvisited_vertices.len() {
+                    probability_list.push(equal_prob);
+                    // println!("Propability for vertex {}: {}", unvisited_vertices[j], equal_prob);
                 }
             } else {
                 for j in 0..unvisited_vertices.len() {
-                    let prob: f64 = ((f32::powf(pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],alpha) * (f32::powf((1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]),beta))) / propability_sum) as f64;
+                    let prob: f64 = ((f32::powf(pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],alpha) * (f32::powf(1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],beta))) / probability_sum) as f64;
 
-                    propability_list.push(prob);
-                    println!("Propability for vertex {}: {}", unvisited_vertices[j], prob);
+                    probability_list.push(prob);
+                    // println!("Probability for vertex {}: {}", unvisited_vertices[j], prob);
                 }
             }
 
 
-            distribution = WeightedIndex::new(&propability_list).unwrap();
+            distribution = WeightedIndex::new(&probability_list).unwrap();
             c = distribution.sample(&mut rng) as u32;
 
 
@@ -409,12 +387,12 @@ fn release_ants(
             ant_path[(previous_vertex as usize - 1, current_vertex as usize - 1)] = 1.0;
             ant_path[(current_vertex as usize - 1 ,previous_vertex as usize - 1)] = 1.0;
 
-            for j in 0..unvisited_vertices.len()
+            /*for j in 0..unvisited_vertices.len()
             {
                 println!("unvisited_vertices[{}] = {}", j, unvisited_vertices[j as usize]);
             }
 
-            println!("====================================================");
+            println!("====================================================");*/
         }
 
         ant_tour_length += adjacency_matrix[(current_vertex as usize - 1, 0)];
@@ -422,18 +400,18 @@ fn release_ants(
         ant_path[(current_vertex as usize - 1, 0)] += 1.0;
         ant_path[(0, current_vertex as usize - 1)] += 1.0;
 
-        for j in 0..*vertex_count
+        /*for j in 0..*vertex_count
         {
             for x in 0..*vertex_count
             {
                 print!("{} ,", ant_path[(x as usize, j as usize)]);
             }
             println!();
-        }
+        }*/
 
         ant_paths.push((ant_path, ant_tour_length));
 
-        println!("Ant tour length: {}" , ant_tour_length);
+        // println!("Ant tour length: {}" , ant_tour_length);
     }
 
     return ant_paths;
@@ -441,7 +419,6 @@ fn release_ants(
 
 // This function updates the pheromone amount laid on each edge based on the paths that the ants took
 fn update_pheromones(
-    adjacency_matrix: &DMatrix<f32>,
     mut pheromone_matrix: DMatrix<f32>,
     ant_paths: &Vec<(DMatrix<f32>, f32)>,
     pheromone_constant: &f32,
@@ -467,7 +444,7 @@ fn update_pheromones(
         pheromone_matrix = pheromone_matrix*(1.0 - pheromone_evaporation_rate) + ant_pheromone_path;
     }
 
-    for j in 0..*vertex_count
+    /*for j in 0..*vertex_count
     {
         for x in 0..*vertex_count
         {
@@ -476,7 +453,7 @@ fn update_pheromones(
         println!();
     }
 
-    println!("-------------------------------------------------------------------");
+    println!("-------------------------------------------------------------------");*/
 
     return pheromone_matrix;
 }

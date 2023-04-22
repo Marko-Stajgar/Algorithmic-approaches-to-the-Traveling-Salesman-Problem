@@ -1,10 +1,7 @@
-use crate::app;
 use crate::graph;
 
 use nalgebra::DMatrix;
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::WindowResized};
-use bevy_despawn_with::DespawnAllCommandsExt;
-use bevy_prototype_debug_lines::*;
+use bevy::prelude::*;
 
 pub fn execute_input(
     mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,

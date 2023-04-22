@@ -1,7 +1,7 @@
 use crate::console;
 use crate::graph;
 
-use bevy::{prelude::*, render::camera::ScalingMode};
+use bevy::prelude::*;
 
 #[derive(Component)]
 pub struct ConsoleInputText;
@@ -238,12 +238,12 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 // This system takes keyboard input and updates the console text on screen accordingly
 pub fn console_input(
-    mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
-    mut edit_mode: ResMut<graph::EditMode>,
-    mut vertex_list: ResMut<graph::VertexList>,
-    mut edge_list: ResMut<graph::EdgeList>,
-    mut shortest_cycle: ResMut<graph::ShortestCycle>,
-    mut ant_colony_parameters: ResMut<graph::AntColonyParameters>,
+    app_exit_events: ResMut<Events<bevy::app::AppExit>>,
+    edit_mode: ResMut<graph::EditMode>,
+    vertex_list: ResMut<graph::VertexList>,
+    edge_list: ResMut<graph::EdgeList>,
+    shortest_cycle: ResMut<graph::ShortestCycle>,
+    ant_colony_parameters: ResMut<graph::AntColonyParameters>,
     mut char_evr: EventReader<ReceivedCharacter>,
     keys: Res<Input<KeyCode>>,
     mut console_past_command3: Local<String>,
