@@ -280,8 +280,8 @@ pub struct AntColonyParameters{
     pub number_of_ants: u32,
     pub pheromone_constant: f32,
     pub pheromone_evaporation_rate: f32,
-    pub alpha: u32,
-    pub beta: u32,
+    pub alpha: f32,
+    pub beta: f32,
     pub pheromone_matrix: DMatrix<f32>,
     pub ant_paths: Vec<(DMatrix<f32>, f32)>,
 }
@@ -302,6 +302,8 @@ pub fn ant_colony_optimization(
         let mut shortest_cycle_vector = shortest_cycle.vector.clone();
 
         ant_colony_parameters.ant_paths = release_ants(
+            ant_colony_parameters.alpha,
+            ant_colony_parameters.beta,
             &adjacency_matrix.matrix,
             &pheromone_matrix,
             ant_paths,
@@ -330,6 +332,8 @@ pub fn ant_colony_optimization(
 
 // This function simulates ants walking through each vertex until a hamiltonian cycle is complete
 fn release_ants(
+    alpha: f32,
+    beta: f32,
     adjacency_matrix: &DMatrix<f32>,
     pheromone_matrix: &DMatrix<f32>,
     mut ant_paths: Vec<(DMatrix<f32>, f32)>,
@@ -371,7 +375,7 @@ fn release_ants(
                 println!("Amount of pheromones laid on edge {} - {} stored in the pheromone matrix: {}", unvisited_vertices[j], current_vertex, pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
                 println!("Weight assigned to edge {} - {} stored in the adjacency matrix: {}", unvisited_vertices[j], current_vertex, adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]);
 
-                propability_sum += (pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]));
+                propability_sum += (f32::powf(pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],alpha) * (f32::powf((1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]),beta)));
             }
 
             if propability_sum == 0.0 {
@@ -383,7 +387,7 @@ fn release_ants(
                 }
             } else {
                 for j in 0..unvisited_vertices.len() {
-                    let prob: f64 = ((pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)] * (1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)])) / propability_sum) as f64;
+                    let prob: f64 = ((f32::powf(pheromone_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)],alpha) * (f32::powf((1.0 / adjacency_matrix[(unvisited_vertices[j] as usize - 1, current_vertex as usize - 1)]),beta))) / propability_sum) as f64;
 
                     propability_list.push(prob);
                     println!("Propability for vertex {}: {}", unvisited_vertices[j], prob);

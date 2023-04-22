@@ -37,8 +37,8 @@ fn main() {
             number_of_ants: 50,
             pheromone_constant: 1.0,
             pheromone_evaporation_rate: 0.2,
-            alpha: 1,
-            beta: 1,
+            alpha: 1.0,
+            beta: 4.0,
             pheromone_matrix: DMatrix::from_diagonal_element(0, 0, 0.0),
             ant_paths: Vec::new(),
         })

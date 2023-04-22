@@ -238,8 +238,11 @@ pub fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 // This system takes keyboard input and updates the console text on screen accordingly
 pub fn console_input(
+    mut app_exit_events: ResMut<Events<bevy::app::AppExit>>,
     mut edit_mode: ResMut<graph::EditMode>,
-    vertex_list: Res<graph::VertexList>,
+    mut vertex_list: ResMut<graph::VertexList>,
+    mut edge_list: ResMut<graph::EdgeList>,
+    mut shortest_cycle: ResMut<graph::ShortestCycle>,
     mut ant_colony_parameters: ResMut<graph::AntColonyParameters>,
     mut char_evr: EventReader<ReceivedCharacter>,
     keys: Res<Input<KeyCode>>,
@@ -273,8 +276,11 @@ pub fn console_input(
         *console_past_command1 = string.to_string();
 
         console::execute_input(
+            app_exit_events,
             edit_mode,
             vertex_list,
+            edge_list,
+            shortest_cycle,
             ant_colony_parameters,
             &string,
         );
