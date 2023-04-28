@@ -5,7 +5,7 @@ In this project I want to try and implement few algorithms for finding the short
 The whole project is build using the [bevy](https://github.com/bevyengine/bevy) game engine and [nalgebra](https://github.com/dimforge/nalgebra).
 
 # How to install & run
-If you don't have rust & cargo installed, follow the guide for installation via [rustup](https://www.rust-lang.org/tools/install).
+If you don't have rust & cargo installed, follow the guide for installation via [rustup](https://www.rust-lang.org/tools/install) (optional).
 
 Then clone the repository and run using `cargo run`.
 
