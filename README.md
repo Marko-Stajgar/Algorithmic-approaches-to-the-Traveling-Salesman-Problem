@@ -2,7 +2,7 @@
 
 In this project I want to try and implement few algorithms for finding the shortest path through [Hamiltonian cycles](https://en.wikipedia.org/wiki/Hamiltonian_path) in complete, weighted, undirected [graphs](https://en.wikipedia.org/wiki/Graph_(discrete_mathematics)), more popularly known as the [Traveling-Salesman-Problem](https://en.wikipedia.org/wiki/Travelling_salesman_problem).
 
-The whole project is build using the [bevy](https://github.com/bevyengine/bevy) game engine and [nalgebra](https://github.com/dimforge/nalgebra).
+The whole project is build using [bevy](https://github.com/bevyengine/bevy) and [nalgebra](https://github.com/dimforge/nalgebra).
 
 # How to install & run
 If you don't have rust & cargo installed, follow the guide for installation via [rustup](https://www.rust-lang.org/tools/install) (optional).
